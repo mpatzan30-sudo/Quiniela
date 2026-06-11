@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiniela del Mundial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+
+        .seccion {
+            border: 1px solid #ccc;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .cerrado {
+            color: red;
+            font-weight: bold;
+        }
+
+        .partido-item {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        input[type="number"] {
+            width: 50px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 150px;
+            text-align: center;
+        }
+
+        .btn-admin {
+            background-color: #ff9800;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Quiniela del Mundial</h1>
+
+    <button class="btn-admin" onclick="sincronizarAPI()">Actualizar Partidos (API)</button>
+
+    <div class="seccion" id="modulo-partidos">
+        <h2>Partidos (Próximos 3 días)</h2>
+        <div id="lista-partidos">Cargando partidos...</div>
+    </div>
+
+    <script>
+        // Función para descargar los datos de internet a tu base de datos
+        function sincronizarAPI() {
+            document.getElementById('lista-partidos').innerHTML = "Descargando datos oficiales...";
+            fetch('http://localhost:3000/api/sincronizar', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.mensaje || data.error);
+                    cargarPartidosDesdeBD(); // Recargamos la pantalla
+                });
+        }
+
+        // Función para leer tu base de datos local y mostrar los partidos
+        function cargarPartidosDesdeBD() {
+            fetch('http://localhost:3000/api/partidos')
+                .then(res => res.json())
+                .then(partidos => {
+                    const contenedor = document.getElementById('lista-partidos');
+                    contenedor.innerHTML = ''; // Limpiar pantalla
+
+                    const ahora = new Date().getTime();
+                    const tresDiasEnMs = 3 * 24 * 60 * 60 * 1000;
+
+                    partidos.forEach(p => {
+                        const tiempoPartido = new Date(p.fecha_inicio).getTime();
+                        const diferencia = tiempoPartido - ahora;
+
+                        // Mostramos solo partidos que no han empezado (NS) o que están en ventana de 3 días
+                        if (diferencia > 0 && diferencia <= tresDiasEnMs && p.estado === 'NS') {
+                            contenedor.innerHTML += `
+                                <div class="partido-item" id="p-${p.id}" data-inicio="${p.fecha_inicio}">
+                                    <h3>${p.equipo_local} vs ${p.equipo_visitante}</h3>
+                                    <p>Inicio: ${new Date(p.fecha_inicio).toLocaleString()}</p>
+                                    <input type="text" id="nombre-${p.id}" placeholder="Tu Nombre"> <br><br>
+                                    <input type="number" id="golesA-${p.id}" placeholder="0"> -
+                                    <input type="number" id="golesB-${p.id}" placeholder="0"> <br><br>
+                                    <button id="btn-${p.id}" onclick="guardar(${p.id})">Guardar Marcador</button>
+                                    <p id="msg-${p.id}" class="cerrado"></p>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    if (contenedor.innerHTML === '') {
+                        contenedor.innerHTML = '<p>No hay partidos próximos. ¡Intenta darle al botón Actualizar Partidos!</p>';
+                    }
+                });
+        }
+
+        // Función para el temporizador de 2 segundos
+        function verificarTiempos() {
+            const partidosEnPantalla = document.querySelectorAll('.partido-item');
+            partidosEnPantalla.forEach(div => {
+                const idHTML = div.id;
+                const idPartido = idHTML.split('-')[1];
+                const tiempoPartido = new Date(div.getAttribute('data-inicio')).getTime();
+                const ahora = new Date().getTime();
+
+                if (tiempoPartido - ahora <= 2000) {
+                    const btn = document.getElementById('btn-' + idPartido);
+                    if (btn) btn.disabled = true;
+                    const msg = document.getElementById('msg-' + idPartido);
+                    if (msg) msg.innerText = "¡Tiempo agotado!";
+                }
+            });
+        }
+
+        // Función para guardar el pronóstico
+        function guardar(id) {
+            const nombre = document.getElementById('nombre-' + id).value;
+            const golesA = document.getElementById('golesA-' + id).value;
+            const golesB = document.getElementById('golesB-' + id).value;
+
+            if (!nombre || golesA === "" || golesB === "") {
+                alert("Llena todos los campos."); return;
+            }
+
+            fetch('http://localhost:3000/api/guardar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ partidoId: id, nombre: nombre, local: parseInt(golesA), visitante: parseInt(golesB) })
+            }).then(res => res.json()).then(data => alert(data.mensaje || data.error));
+        }
+
+        // Inicializamos
+        cargarPartidosDesdeBD();
+        setInterval(verificarTiempos, 1000);
+    </script>
+</body>
+</html>
