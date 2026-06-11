@@ -62,8 +62,9 @@ def sincronizar_api():
         datos = respuesta.json()
         
         # Verificamos si la API nos rechazó la llave
-        if 'errors' in datos and datos['errors']:
-            return jsonify({'error': 'Error de API: Verifica tu Llave Secreta'}), 400
+       if 'errors' in datos and datos['errors']:
+    error_real = str(datos['errors'])
+    return jsonify({'error': f'La API de Fútbol dice: {error_real}'}), 400
 
         partidos_descargados = datos.get('response', [])
         if len(partidos_descargados) == 0:
