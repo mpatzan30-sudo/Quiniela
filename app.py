@@ -8,7 +8,7 @@ import os
 app = Flask(__name__, template_folder='.')
 CORS(app)
 
-API_KEY = "" # <-- ¡Pon tu llave real de API-Football aquí!
+API_KEY = "9c4f4eb288cda570bc09fadacb134495" # <-- ¡Pon tu llave real de API-Football aquí!
 LIGA_MUNDIAL_ID = "1"
 TEMPORADA = "2026"
 
