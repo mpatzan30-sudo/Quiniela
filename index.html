@@ -2,120 +2,507 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Quiniela del Mundial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiniela del Mundial 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; background-color: #f4f4f9; }
-        .seccion { border: 1px solid #ccc; padding: 20px; background: white; border-radius: 10px; margin: 20px auto; width: 80%; max-width: 600px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .cerrado { color: red; font-weight: bold; }
-        .partido-item { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
-        input[type="number"] { width: 50px; text-align: center; }
-        input[type="text"] { width: 150px; text-align: center; }
-        .btn-admin { background-color: #ff9800; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;}
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ffc107;
+            --text-color: #212529;
+            --success-color: #198754;
+            --live-color: #dc3545;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            padding: 30px;
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .btn-sync {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-sync:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            background-color: #e0a800;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary-color);
+            padding-left: 10px;
+        }
+
+        .partido-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .partido-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 8px;
+        }
+
+        .badge-live {
+            background-color: var(--live-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .marcador-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .team {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 35%;
+            text-align: center;
+        }
+
+        .team img {
+            width: 50px;
+            height: 35px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 8px;
+        }
+
+        .team-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .vs-o-live {
+            width: 30%;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #495057;
+        }
+
+        .live-score-display {
+            font-size: 2rem;
+            color: var(--live-color);
+            letter-spacing: 5px;
+        }
+
+        .quiniela-form {
+            background: var(--secondary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .inputs-goles {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .inputs-goles input[type="number"] {
+            width: 60px;
+            height: 40px;
+            font-size: 1.2rem;
+            text-align: center;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+        }
+
+        .input-nombre {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-family: inherit;
+        }
+
+        .btn-save {
+            width: 100%;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background-color: #146c43;
+        }
+
+        .btn-toggle-apuestas {
+            background: none;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle-apuestas:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .apuestas-listado {
+            margin-top: 15px;
+            border-top: 2px dashed #e2e8f0;
+            padding-top: 10px;
+            display: none;
+        }
+
+        .tabla-apuestas {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .tabla-apuestas th, .tabla-apuestas td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .tabla-apuestas th {
+            background-color: #edf2f7;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Quiniela del Mundial</h1>
-    
-    <button class="btn-admin" onclick="sincronizarAPI()">Actualizar Partidos (API)</button>
+<div class="container">
+    <header>
+        <h1>Quiniela del Mundial 2026</h1>
+        <button class="btn-sync" onclick="sincronizarAPI()">Actualizar Partidos</button>
+    </header>
 
-    <div class="seccion" id="modulo-partidos">
-        <h2>Partidos (Próximos 3 días)</h2>
-        <div id="lista-partidos">Cargando partidos...</div>
+    <div class="section-title">Partidos del Torneo</div>
+    <div id="contenedor-partidos">
+        <div class="loading">Cargando partidos oficiales desde la base de datos...</div>
     </div>
+</div>
 
-    <script>
-        // Función para descargar los datos de internet a tu base de datos
-        function sincronizarAPI() {
-            document.getElementById('lista-partidos').innerHTML = "Descargando datos oficiales...";
-            
-            // MODIFICADO: Ruta relativa para la nube
-            fetch('/api/sincronizar', { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.mensaje || data.error);
-                cargarPartidosDesdeBD(); // Recargamos la pantalla
-            });
+<script>
+    // Función de seguridad: Convierte códigos peligrosos en texto inofensivo
+    function escaparHTML(texto) {
+        const div = document.createElement('div');
+        div.innerText = texto;
+        return div.innerHTML;
+    }
+    // Diccionario para convertir nombres de Football-Data a códigos de bandera (ISO 2)
+    const mapaBanderas = {
+        "Canada": "ca", "Mexico": "mx", "USA": "us", "United States": "us",
+        "Argentina": "ar", "Brazil": "br", "France": "fr", "Germany": "de",
+        "Spain": "es", "Italy": "it", "England": "gb", "Portugal": "pt",
+        "Netherlands": "nl", "Belgium": "be", "Croatia": "hr", "Uruguay": "uy",
+        "Colombia": "co", "Morocco": "ma", "Japan": "jp", "South Korea": "kr",
+        "Senegal": "sn", "Tunisia": "tn", "Poland": "pl", "Australia": "au"
+    };
+
+    function obtenerUrlBandera(nombreEquipo) {
+        const codigo = mapaBanderas[nombreEquipo];
+        if (codigo) {
+            return `https://flagcdn.com/w80/${codigo}.png`;
         }
+        // Si es un equipo comodín o desconocido, muestra una bandera genérica blanca/globo
+        return "https://flagcdn.com/w80/un.png";
+    }
 
-        // Función para leer tu base de datos y mostrar los partidos
-        function cargarPartidosDesdeBD() {
-            // MODIFICADO: Ruta relativa para la nube
-            fetch('/api/partidos')
-            .then(res => res.json())
-            .then(partidos => {
-                const contenedor = document.getElementById('lista-partidos');
-                contenedor.innerHTML = ''; // Limpiar pantalla
-                
-                const ahora = new Date().getTime();
-                const tresDiasEnMs = 3 * 24 * 60 * 60 * 1000;
+    async function cargarPartidos() {
+        try {
+            const respuesta = await fetch('/api/partidos');
+            const partidos = await respuesta.json();
+            const contenedor = document.getElementById('contenedor-partidos');
+            contenedor.innerHTML = '';
 
-                partidos.forEach(p => {
-                    const tiempoPartido = new Date(p.fecha_inicio).getTime();
-                    const diferencia = tiempoPartido - ahora;
-
-                    // Mostramos solo partidos que no han empezado (NS) o que están en ventana de 3 días
-                    if (diferencia > 0 && diferencia <= tresDiasEnMs && p.estado === 'NS') {
-                        contenedor.innerHTML += `
-                            <div class="partido-item" id="p-${p.id}" data-inicio="${p.fecha_inicio}">
-                                <h3>${p.equipo_local} vs ${p.equipo_visitante}</h3>
-                                <p>Inicio: ${new Date(p.fecha_inicio).toLocaleString()}</p>
-                                <input type="text" id="nombre-${p.id}" placeholder="Tu Nombre"> <br><br>
-                                <input type="number" id="golesA-${p.id}" placeholder="0"> - 
-                                <input type="number" id="golesB-${p.id}" placeholder="0"> <br><br>
-                                <button id="btn-${p.id}" onclick="guardar(${p.id})">Guardar Marcador</button>
-                                <p id="msg-${p.id}" class="cerrado"></p>
-                            </div>
-                        `;
-                    }
-                });
-                
-                if (contenedor.innerHTML === '') {
-                    contenedor.innerHTML = '<p>No hay partidos próximos. ¡Intenta darle al botón Actualizar Partidos!</p>';
-                }
-            });
-        }
-
-        // Función para el temporizador de 2 segundos
-        function verificarTiempos() {
-            const partidosEnPantalla = document.querySelectorAll('.partido-item');
-            partidosEnPantalla.forEach(div => {
-                const idHTML = div.id;
-                const idPartido = idHTML.split('-')[1];
-                const tiempoPartido = new Date(div.getAttribute('data-inicio')).getTime();
-                const ahora = new Date().getTime();
-                
-                // Si faltan 2 segundos o menos
-                if (tiempoPartido - ahora <= 2000) {
-                    const btn = document.getElementById('btn-' + idPartido);
-                    if(btn) btn.disabled = true;
-                    const msg = document.getElementById('msg-' + idPartido);
-                    if(msg) msg.innerText = "¡Tiempo agotado!";
-                }
-            });
-        }
-
-        // Función para guardar el pronóstico
-        function guardar(id) {
-            const nombre = document.getElementById('nombre-' + id).value;
-            const golesA = document.getElementById('golesA-' + id).value;
-            const golesB = document.getElementById('golesB-' + id).value;
-
-            if (!nombre || golesA === "" || golesB === "") {
-                alert("Llena todos los campos."); return;
+            if (partidos.length === 0) {
+                contenedor.innerHTML = '<div class="loading">No hay partidos en la BD. ¡Presiona el botón de actualizar arriba!</div>';
+                return;
             }
 
-            // MODIFICADO: Ruta relativa para la nube
-            fetch('/api/guardar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ partidoId: id, nombre: nombre, local: parseInt(golesA), visitante: parseInt(golesB) })
-            }).then(res => res.json()).then(data => alert(data.mensaje || data.error));
-        }
+            // Descargamos todas las quinielas de una vez para agruparlas por partido
+            const todasLasApuestas = await obtenerTodasLasQuinielas();
 
-        // Inicializamos
-        cargarPartidosDesdeBD();
-        setInterval(verificarTiempos, 1000);
-    </script>
+            partidos.forEach(partido => {
+                const urlFlagLocal = obtenerUrlBandera(partido.equipo_local);
+                const urlFlagVisita = obtenerUrlBandera(partido.equipo_visitante);
+                
+                // Formatear Fecha de formato ISO a algo legible
+                const fechaObj = new Date(partido.fecha_inicio);
+                const fechaFormateada = fechaObj.toLocaleString('es-GT', { 
+                    day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' 
+                });
+
+                // Determinar el estado visual
+                let statusBadge = "Próximo";
+                let esEnVivo = false;
+                if (partido.estado === 'FT') statusBadge = "Finalizado";
+                else if (partido.estado === 'IN_PLAY' || partido.estado === 'PAUSED') {
+                    statusBadge = `<span class="badge-live">EN VIVO</span>`;
+                    esEnVivo = true;
+                }
+
+                // Filtrar las apuestas que le pertenecen a este partido
+                const apuestasDelPartido = todasLasApuestas.filter(a => a.partido_id === partido.id);
+
+                // Construir filas de la tabla de registros
+                let filasTabla = '';
+                if (apuestasDelPartido.length === 0) {
+                    filasTabla = `<tr><td colspan="2" style="color:#a0aec0; font-style:italic;">Nadie ha apostado en este juego aún.</td></tr>`;
+                } else {
+                    apuestasDelPartido.forEach(apuesta => {
+                        filasTabla += `
+                            <tr>
+                                <td><strong>${escaparHTML(apuesta.nombre)}</strong></td>
+                                <td>${apuesta.marcador_local} - ${apuesta.marcador_visitante}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // Armar la estructura HTML de la tarjeta
+                const card = document.createElement('div');
+                card.className = 'partido-card';
+                card.innerHTML = `
+                    <div class="meta-info">
+                        <span>📅 ${fechaFormateada}</span>
+                        <span>${statusBadge}</span>
+                    </div>
+                    
+                    <div class="marcador-container">
+                        <div class="team">
+                            <img src="${urlFlagLocal}" alt="Bandera">
+                            <span class="team-name">${partido.equipo_local}</span>
+                        </div>
+                        
+                        <div class="vs-o-live">
+                            ${esEnVivo || partido.estado === 'FT' 
+                                ? `<span class="live-score-display">${partido.goles_local} - ${partido.goles_visitante}</span>` 
+                                : 'VS'
+                            }
+                        </div>
+                        
+                        <div class="team">
+                            <img src="${urlFlagVisita}" alt="Bandera">
+                            <span class="team-name">${partido.equipo_visitante}</span>
+                        </div>
+                    </div>
+
+                    ${partido.estado === 'NS' || partido.estado === 'SCHEDULED' || partido.estado === 'TIMED' ? `
+                        <div class="quiniela-form">
+                            <form id="form-${partid.id}" onsubmit="guardarQuiniela(event, ${partido.id})">
+                                <div class="inputs-goles">
+                                    <input type="number" id="local-${partido.id}" min="0" required placeholder="0">
+                                    <span>-</span>
+                                    <input type="number" id="visitante-${partido.id}" min="0" required placeholder="0">
+                                </div>
+                                <input type="text" id="nombre-${partido.id}" class="input-nombre" placeholder="Tu nombre completo" required>
+                                <button type="submit" class="btn-save">Guardar Marcador</button>
+                            </form>
+                        </div>
+                    ` : `
+                        <div style="text-align:center; font-size:0.85rem; color:#e53e3e; font-weight:600;">
+                            🔒 El juego ya inició o terminó. Registro cerrado.
+                        </div>
+                    `}
+
+                    <button class="btn-toggle-apuestas" onclick="toggleApuestas(${partido.id})">
+                        👁️ Ver apuestas de este partido (${apuestasDelPartido.length})
+                    </button>
+                    
+                    <div id="apuestas-panel-${partido.id}" class="apuestas-listado">
+                        <table class="tabla-apuestas">
+                            <thead>
+                                <tr>
+                                    <th>Participante</th>
+                                    <th>Pronóstico</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filasTabla}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                contenedor.appendChild(card);
+            });
+        } catch (error) {
+            console.error(error);
+            alert("Error al cargar la lista de partidos.");
+        }
+    }
+
+    // Truco técnico: para no sobrecargar la BD con llamadas por cada tarjeta,
+    // creamos una ruta ficticia o usamos el mismo endpoint de quinielas si existiera,
+    // o para este MVP, asumimos que podemos consultar el backend. 
+    // Como en app.py no creamos un GET de quinielas, vamos a simularlo trayendo los datos.
+    async function obtenerTodasLasQuinielas() {
+        // Nota: Para que el punto 4 funcione al 100%, tu Python necesita saber listar las quinielas.
+        // He diseñado el frontend para intentar leer de '/api/quinielas'. 
+        try {
+            const res = await fetch('/api/quinielas_todas');
+            if(res.ok) return await res.json();
+            return [];
+        } catch {
+            return [];
+        }
+    }
+
+    function toggleApuestas(partidoId) {
+        const panel = document.getElementById(`apuestas-panel-${partidoId}`);
+        if (panel.style.display === "block") {
+            panel.style.display = "none";
+        } else {
+            panel.style.display = "block";
+        }
+    }
+
+    async function guardarQuiniela(event, partidoId) {
+        event.preventDefault();
+        
+        const gLocal = document.getElementById(`local-${partidoId}`).value;
+        const gVisitante = document.getElementById(`visitante-${partidoId}`).value;
+        const txtNombre = document.getElementById(`nombre-${partidoId}`).value;
+
+        try {
+            const respuesta = await fetch('/api/guardar', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    partidoId: partidoId,
+                    nombre: txtNombre,
+                    local: parseInt(gLocal),
+                    visitante: parseInt(gVisitante)
+                })
+            });
+
+            const resultado = await respuesta.json();
+            if (respuesta.ok) {
+                alert(resultado.mensaje);
+                
+                // 1) ¡LIMPIAR CAMPOS LOGRADO!
+                document.getElementById(`local-${partidoId}`).value = '';
+                document.getElementById(`visitante-${partidoId}`).value = '';
+                document.getElementById(`nombre-${partidoId}`).value = '';
+                
+                // Recargamos la interfaz para que aparezca el nuevo nombre listado abajo
+                cargarPartidos();
+            } else {
+                alert("Error: " + resultado.error);
+            }
+        } catch (error) {
+            alert("Hubo un error de conexión.");
+        }
+    }
+
+    async function sincronizarAPI() {
+        const btn = document.querySelector('.btn-sync');
+        btn.innerText = "Sincronizando...";
+        btn.disabled = true;
+
+        try {
+            const respuesta = await fetch('/api/sincronizar', { method: 'POST' });
+            const resultado = await respuesta.json();
+            alert(resultado.mensaje || resultado.error);
+            cargarPartidos();
+        } catch (error) {
+            alert("Error al conectar con el servidor.");
+        } finally {
+            btn.innerText = "Actualizar Partidos (API)";
+            btn.disabled = false;
+        }
+    }
+
+    // Cargar automáticamente al entrar
+    window.onload = cargarPartidos;
+</script>
 </body>
 </html>
