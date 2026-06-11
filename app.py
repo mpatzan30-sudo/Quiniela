@@ -8,7 +8,9 @@ import os
 app = Flask(__name__, template_folder='.')
 CORS(app)
 
+# Tu llave ahora está segura y escondida en Render
 API_KEY = os.environ.get('API_KEY')
+
 LIGA_MUNDIAL_ID = "1"
 TEMPORADA = "2026"
 
@@ -45,7 +47,6 @@ def inicializar_bd():
     except Exception as e:
         print(f"Error al inicializar la BD: {e}")
 
-# ¡LA SOLUCIÓN! Ejecutamos la creación de tablas aquí afuera para que Render lo lea siempre
 inicializar_bd()
 
 @app.route('/')
@@ -61,14 +62,15 @@ def sincronizar_api():
         respuesta = requests.get(url, headers=headers)
         datos = respuesta.json()
         
-        # Verificamos si la API nos rechazó la llave
-       if 'errors' in datos and datos['errors']:
-    error_real = str(datos['errors'])
-    return jsonify({'error': f'La API de Fútbol dice: {error_real}'}), 400
+        # AQUÍ ESTÁ EL CAMBIO REVELADOR PERFECTAMENTE ALINEADO
+        if 'errors' in datos and datos['errors']:
+            error_real = str(datos['errors'])
+            return jsonify({'error': f'La API de Fútbol dice: {error_real}'}), 400
 
         partidos_descargados = datos.get('response', [])
+        
         if len(partidos_descargados) == 0:
-            return jsonify({'mensaje': 'Conexión exitosa, pero la API devolvió 0 partidos para esta liga/temporada.'}), 200
+            return jsonify({'mensaje': 'Conexión exitosa, pero la API mandó 0 partidos. Revisa tu plan en su web.'}), 200
 
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -108,7 +110,6 @@ def obtener_partidos():
         conexion.close()
         return jsonify(partidos_bd), 200
     except Exception as e:
-        # Si falla, ahora enviamos un error claro en formato JSON
         return jsonify({'error': f"Error al leer BD: {str(e)}"}), 500
 
 @app.route('/api/guardar', methods=['POST'])
