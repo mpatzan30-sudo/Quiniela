@@ -5,19 +5,16 @@ from psycopg2.extras import RealDictCursor
 import requests
 import os
 
-# Le decimos a Flask que busque el index.html en la misma carpeta
 app = Flask(__name__, template_folder='.')
 CORS(app)
 
-API_KEY = "9c4f4eb288cda570bc09fadacb134495"
+API_KEY = "" # <-- ¡Pon tu llave real de API-Football aquí!
 LIGA_MUNDIAL_ID = "1"
 TEMPORADA = "2026"
 
 def obtener_conexion():
-    # Render inyectará la contraseña de la base de datos aquí mágicamente
     DATABASE_URL = os.environ.get('DATABASE_URL')
-    conexion = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-    return conexion
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 def inicializar_bd():
     try:
@@ -34,7 +31,6 @@ def inicializar_bd():
                 goles_visitante INTEGER
             )
         ''')
-        # En PostgreSQL, AUTOINCREMENT se escribe como SERIAL
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS quinielas (
                 id SERIAL PRIMARY KEY,
@@ -47,9 +43,11 @@ def inicializar_bd():
         conexion.commit()
         conexion.close()
     except Exception as e:
-        print("Esperando conexión a la base de datos de Render...")
+        print(f"Error al inicializar la BD: {e}")
 
-# RUTA NUEVA: Mostrar la página web
+# ¡LA SOLUCIÓN! Ejecutamos la creación de tablas aquí afuera para que Render lo lea siempre
+inicializar_bd()
+
 @app.route('/')
 def inicio():
     return render_template('index.html')
@@ -62,10 +60,19 @@ def sincronizar_api():
     try:
         respuesta = requests.get(url, headers=headers)
         datos = respuesta.json()
+        
+        # Verificamos si la API nos rechazó la llave
+        if 'errors' in datos and datos['errors']:
+            return jsonify({'error': 'Error de API: Verifica tu Llave Secreta'}), 400
+
+        partidos_descargados = datos.get('response', [])
+        if len(partidos_descargados) == 0:
+            return jsonify({'mensaje': 'Conexión exitosa, pero la API devolvió 0 partidos para esta liga/temporada.'}), 200
+
         conexion = obtener_conexion()
         cursor = conexion.cursor()
         
-        for partido in datos.get('response', []):
+        for partido in partidos_descargados:
             p_id = partido['fixture']['id']
             fecha = partido['fixture']['date']
             estado = partido['fixture']['status']['short']
@@ -74,7 +81,6 @@ def sincronizar_api():
             goles_local = partido['goals']['home']
             goles_visita = partido['goals']['away']
 
-            # PostgreSQL usa %s en lugar de ? para los datos seguros
             cursor.execute('''
                 INSERT INTO partidos (id, equipo_local, equipo_visitante, fecha_inicio, estado, goles_local, goles_visitante)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -86,18 +92,23 @@ def sincronizar_api():
             
         conexion.commit()
         conexion.close()
-        return jsonify({'mensaje': '¡Base de datos actualizada!'}), 200
+        return jsonify({'mensaje': f'¡BD actualizada con {len(partidos_descargados)} partidos!'}), 200
+        
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f"Hubo un problema: {str(e)}"}), 500
 
 @app.route('/api/partidos', methods=['GET'])
 def obtener_partidos():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    cursor.execute('SELECT * FROM partidos ORDER BY fecha_inicio ASC')
-    partidos_bd = cursor.fetchall()
-    conexion.close()
-    return jsonify(partidos_bd), 200
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        cursor.execute('SELECT * FROM partidos ORDER BY fecha_inicio ASC')
+        partidos_bd = cursor.fetchall()
+        conexion.close()
+        return jsonify(partidos_bd), 200
+    except Exception as e:
+        # Si falla, ahora enviamos un error claro en formato JSON
+        return jsonify({'error': f"Error al leer BD: {str(e)}"}), 500
 
 @app.route('/api/guardar', methods=['POST'])
 def guardar_quiniela():
@@ -116,8 +127,5 @@ def guardar_quiniela():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    # Inicializamos la BD antes de arrancar
-    inicializar_bd()
-    # En la nube, usamos el puerto que nos asigne la plataforma
     port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port)
