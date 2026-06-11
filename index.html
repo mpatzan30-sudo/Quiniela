@@ -271,20 +271,26 @@
 </div>
 
 <script>
-    // Función de seguridad: Convierte códigos peligrosos en texto inofensivo
+   //seguridad
     function escaparHTML(texto) {
         const div = document.createElement('div');
         div.innerText = texto;
         return div.innerHTML;
     }
-    // Diccionario para convertir nombres de Football-Data a códigos de bandera (ISO 2)
-    const mapaBanderas = {
+    
+ const mapaBanderas = {
         "Canada": "ca", "Mexico": "mx", "USA": "us", "United States": "us",
         "Argentina": "ar", "Brazil": "br", "France": "fr", "Germany": "de",
         "Spain": "es", "Italy": "it", "England": "gb", "Portugal": "pt",
         "Netherlands": "nl", "Belgium": "be", "Croatia": "hr", "Uruguay": "uy",
         "Colombia": "co", "Morocco": "ma", "Japan": "jp", "South Korea": "kr",
-        "Senegal": "sn", "Tunisia": "tn", "Poland": "pl", "Australia": "au"
+        "Senegal": "sn", "Tunisia": "tn", "Poland": "pl", "Australia": "au",
+        "Switzerland": "ch", "Denmark": "dk", "Serbia": "rs", "Iran": "ir",
+        "Saudi Arabia": "sa", "Costa Rica": "cr", "Ecuador": "ec", "Cameroon": "cm",
+        "Ghana": "gh", "Canada": "ca", "Qatar": "qa", "Wales": "gb-wls",
+        "Nigeria": "ng", "Egypt": "eg", "Chile": "cl", "Peru": "pe",
+        "Venezuela": "ve", "Paraguay": "py", "Bolivia": "bo", "Norway": "no",
+        "Sweden": "se", "Austria": "at", "Greece": "gr", "Turkey": "tr"
     };
 
     function obtenerUrlBandera(nombreEquipo) {
@@ -292,7 +298,7 @@
         if (codigo) {
             return `https://flagcdn.com/w80/${codigo}.png`;
         }
-        // Si es un equipo comodín o desconocido, muestra una bandera genérica blanca/globo
+        
         return "https://flagcdn.com/w80/un.png";
     }
 
@@ -308,20 +314,20 @@
                 return;
             }
 
-            // Descargamos todas las quinielas de una vez para agruparlas por partido
+            
             const todasLasApuestas = await obtenerTodasLasQuinielas();
 
             partidos.forEach(partido => {
                 const urlFlagLocal = obtenerUrlBandera(partido.equipo_local);
                 const urlFlagVisita = obtenerUrlBandera(partido.equipo_visitante);
                 
-                // Formatear Fecha de formato ISO a algo legible
+                
                 const fechaObj = new Date(partido.fecha_inicio);
                 const fechaFormateada = fechaObj.toLocaleString('es-GT', { 
                     day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' 
                 });
 
-                // Determinar el estado visual
+                
                 let statusBadge = "Próximo";
                 let esEnVivo = false;
                 if (partido.estado === 'FT') statusBadge = "Finalizado";
@@ -330,10 +336,10 @@
                     esEnVivo = true;
                 }
 
-                // Filtrar las apuestas que le pertenecen a este partido
+                
                 const apuestasDelPartido = todasLasApuestas.filter(a => a.partido_id === partido.id);
 
-                // Construir filas de la tabla de registros
+               //tablas de registro
                 let filasTabla = '';
                 if (apuestasDelPartido.length === 0) {
                     filasTabla = `<tr><td colspan="2" style="color:#a0aec0; font-style:italic;">Nadie ha apostado en este juego aún.</td></tr>`;
@@ -348,7 +354,7 @@
                     });
                 }
 
-                // Armar la estructura HTML de la tarjeta
+                
                 const card = document.createElement('div');
                 card.className = 'partido-card';
                 card.innerHTML = `
@@ -420,13 +426,9 @@
         }
     }
 
-    // Truco técnico: para no sobrecargar la BD con llamadas por cada tarjeta,
-    // creamos una ruta ficticia o usamos el mismo endpoint de quinielas si existiera,
-    // o para este MVP, asumimos que podemos consultar el backend. 
-    // Como en app.py no creamos un GET de quinielas, vamos a simularlo trayendo los datos.
+    
     async function obtenerTodasLasQuinielas() {
-        // Nota: Para que el punto 4 funcione al 100%, tu Python necesita saber listar las quinielas.
-        // He diseñado el frontend para intentar leer de '/api/quinielas'. 
+        
         try {
             const res = await fetch('/api/quinielas_todas');
             if(res.ok) return await res.json();
@@ -468,12 +470,12 @@
             if (respuesta.ok) {
                 alert(resultado.mensaje);
                 
-                // 1) ¡LIMPIAR CAMPOS LOGRADO!
+               
                 document.getElementById(`local-${partidoId}`).value = '';
                 document.getElementById(`visitante-${partidoId}`).value = '';
                 document.getElementById(`nombre-${partidoId}`).value = '';
                 
-                // Recargamos la interfaz para que aparezca el nuevo nombre listado abajo
+                
                 cargarPartidos();
             } else {
                 alert("Error: " + resultado.error);
@@ -501,7 +503,7 @@
         }
     }
 
-    // Cargar automáticamente al entrar
+    
     window.onload = cargarPartidos;
 </script>
 </body>
