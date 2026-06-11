@@ -378,7 +378,7 @@
 
                     ${partido.estado === 'NS' || partido.estado === 'SCHEDULED' || partido.estado === 'TIMED' ? `
                         <div class="quiniela-form">
-                            <form id="form-${partid.id}" onsubmit="guardarQuiniela(event, ${partido.id})">
+                            <form id="form-${partido.id}" onsubmit="guardarQuiniela(event, ${partido.id})">
                                 <div class="inputs-goles">
                                     <input type="number" id="local-${partido.id}" min="0" required placeholder="0">
                                     <span>-</span>
