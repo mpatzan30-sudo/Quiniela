@@ -6,7 +6,8 @@ import requests
 import os
 
 app = Flask(__name__, template_folder='.')
-CORS(app)
+# Escudo activado: Solo tu página web oficial tiene permiso de usar la API
+CORS(app, resources={r"/api/*": {"origins": "https://app-quiniela.onrender.com"}})
 
 # La llave sigue segura en Render
 API_KEY = os.environ.get('API_KEY')
@@ -142,6 +143,18 @@ def guardar_quiniela():
         return jsonify({'mensaje': '¡Marcador guardado con éxito!'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/quinielas_todas', methods=['GET'])
+def obtener_todas_quinielas():
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        cursor.execute('SELECT * FROM quinielas')
+        todas = cursor.fetchall()
+        conexion.close()
+        return jsonify(todas), 200
+    except Exception as e:
+        return jsonify([]), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 3000))
