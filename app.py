@@ -8,11 +8,8 @@ import os
 app = Flask(__name__, template_folder='.')
 CORS(app)
 
-# Tu llave ahora está segura y escondida en Render
+# La llave sigue segura en Render
 API_KEY = os.environ.get('API_KEY')
-
-LIGA_MUNDIAL_ID = "1"
-TEMPORADA = "2026"
 
 def obtener_conexion():
     DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -53,49 +50,67 @@ inicializar_bd()
 def inicio():
     return render_template('index.html')
 
+# --- CONEXIÓN NUEVA A FOOTBALL-DATA.ORG ---
 @app.route('/api/sincronizar', methods=['POST'])
 def sincronizar_api():
-    url = f"https://v3.football.api-sports.io/fixtures?league={LIGA_MUNDIAL_ID}&season={TEMPORADA}"
-    headers = {'x-apisports-key': API_KEY}
+    # 'WC' es el código universal de esta API para la World Cup
+    url = "https://api.football-data.org/v4/competitions/WC/matches"
+    headers = {'X-Auth-Token': API_KEY}
     
     try:
         respuesta = requests.get(url, headers=headers)
         datos = respuesta.json()
         
-        # AQUÍ ESTÁ EL CAMBIO REVELADOR PERFECTAMENTE ALINEADO
-        if 'errors' in datos and datos['errors']:
-            error_real = str(datos['errors'])
-            return jsonify({'error': f'La API de Fútbol dice: {error_real}'}), 400
+        # Validamos errores de esta nueva API
+        if 'errorCode' in datos or 'error' in datos:
+            error_msg = datos.get('message', 'Error desconocido')
+            return jsonify({'error': f"Football-Data dice: {error_msg}"}), 400
 
-        partidos_descargados = datos.get('response', [])
+        partidos_descargados = datos.get('matches', [])
         
         if len(partidos_descargados) == 0:
-            return jsonify({'mensaje': 'Conexión exitosa, pero la API mandó 0 partidos. Revisa tu plan en su web.'}), 200
+            return jsonify({'mensaje': 'Conexión exitosa, pero aún no hay partidos listos.'}), 200
 
         conexion = obtener_conexion()
         cursor = conexion.cursor()
         
         for partido in partidos_descargados:
-            p_id = partido['fixture']['id']
-            fecha = partido['fixture']['date']
-            estado = partido['fixture']['status']['short']
-            eq_local = partido['teams']['home']['name']
-            eq_visita = partido['teams']['away']['name']
-            goles_local = partido['goals']['home']
-            goles_visita = partido['goals']['away']
+            p_id = partido['id']
+            fecha = partido['utcDate']
+            
+            # Traducción de estados de partido
+            estado_crudo = partido['status']
+            if estado_crudo == 'FINISHED':
+                estado = 'FT'
+            elif estado_crudo in ['SCHEDULED', 'TIMED']:
+                estado = 'NS'
+            else:
+                estado = estado_crudo
+            
+            # Nombres de equipos (si aún no se deciden, ponemos "Por Definir")
+            eq_local = partido['homeTeam']['name'] if partido['homeTeam'].get('name') else 'Por Definir'
+            eq_visita = partido['awayTeam']['name'] if partido['awayTeam'].get('name') else 'Por Definir'
+            
+            # Goles
+            score_ft = partido.get('score', {}).get('fullTime', {}) or {}
+            goles_local = score_ft.get('home')
+            goles_visita = score_ft.get('away')
 
             cursor.execute('''
                 INSERT INTO partidos (id, equipo_local, equipo_visitante, fecha_inicio, estado, goles_local, goles_visitante)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT(id) DO UPDATE SET
+                equipo_local=excluded.equipo_local,
+                equipo_visitante=excluded.equipo_visitante,
                 estado=excluded.estado,
+                fecha_inicio=excluded.fecha_inicio,
                 goles_local=excluded.goles_local,
                 goles_visitante=excluded.goles_visitante
             ''', (p_id, eq_local, eq_visita, fecha, estado, goles_local, goles_visita))
             
         conexion.commit()
         conexion.close()
-        return jsonify({'mensaje': f'¡BD actualizada con {len(partidos_descargados)} partidos!'}), 200
+        return jsonify({'mensaje': f'¡BD actualizada con {len(partidos_descargados)} partidos de Football-Data!'}), 200
         
     except Exception as e:
         return jsonify({'error': f"Hubo un problema: {str(e)}"}), 500
