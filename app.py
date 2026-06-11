@@ -155,7 +155,26 @@ def obtener_todas_quinielas():
         return jsonify(todas), 200
     except Exception as e:
         return jsonify([]), 200
-
+        
+@app.route('/api/eliminar_apuesta', methods=['POST'])
+def eliminar_apuesta():
+    datos = request.json
+    id_apuesta = datos.get('id')
+    clave_ingresada = datos.get('clave')
+    
+    # Verificamos la contraseña contra la variable de entorno
+    if clave_ingresada != os.environ.get('ADMIN_PASSWORD'):
+        return jsonify({'error': 'Clave incorrecta'}), 401
+    
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        cursor.execute('DELETE FROM quinielas WHERE id = %s', (id_apuesta,))
+        conexion.commit()
+        conexion.close()
+        return jsonify({'mensaje': 'Apuesta eliminada con éxito'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port)
