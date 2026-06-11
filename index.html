@@ -290,10 +290,10 @@
         "Ghana": "gh", "Canada": "ca", "Qatar": "qa", "Wales": "gb-wls",
         "Nigeria": "ng", "Egypt": "eg", "Chile": "cl", "Peru": "pe",
         "Venezuela": "ve", "Paraguay": "py", "Bolivia": "bo", "Norway": "no",
-        "Sweden": "se", "Austria": "at", "Greece": "gr", "Turkey": "tr"
-     "South Africa": "za","Algeria": "dz","Jordan": "jo","Czech Republic": "cz", "Iraq": "iq",
-        "New Zealand": "nz","Cape Verde": "cv", "Ivory Coast": "ci", "Curacao": "cw",
-        "Scotland": "gb-sct","Haiti": "ht","Bosnia and Herzegovina": "ba","Congo": "cg",
+        "Sweden": "se", "Austria": "at", "Greece": "gr", "Turkey": "tr",
+        "South Africa": "za", "Algeria": "dz", "Jordan": "jo", "Czech Republic": "cz", "Iraq": "iq",
+        "New Zealand": "nz",  "Cape Verde": "cv", "Ivory Coast": "ci", "Curacao": "cw",
+        "Scotland": "gb-sct", "Haiti": "ht", "Bosnia and Herzegovina": "ba", "Congo": "cg",
         "Panama": "pa", "Uzbekistan": "uz"
     };
 
@@ -353,6 +353,9 @@
                             <tr>
                                 <td><strong>${escaparHTML(apuesta.nombre)}</strong></td>
                                 <td>${apuesta.marcador_local} - ${apuesta.marcador_visitante}</td>
+                                <td>
+                                <button onclick="eliminarApuesta(${apuesta.id})">❌</button>
+                                 </td>
                             </tr>
                         `;
                     });
@@ -506,7 +509,24 @@
             btn.disabled = false;
         }
     }
+async function eliminarApuesta(id) {
+    const clave = prompt("Introduce la clave de administrador para eliminar:");
+    if (!clave) return;
 
+    const respuesta = await fetch('/api/eliminar_apuesta', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id: id, clave: clave })
+    });
+
+    const resultado = await respuesta.json();
+    if (respuesta.ok) {
+        alert(resultado.mensaje);
+        cargarPartidos(); 
+    } else {
+        alert("Error: " + resultado.error);
+    }
+}
     
     window.onload = cargarPartidos;
 </script>
